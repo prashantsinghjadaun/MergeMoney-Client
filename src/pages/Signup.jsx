@@ -6,6 +6,14 @@ import { useDispatch } from "react-redux";
 import { SET_USER } from "../redux/user/action";
 import { Link, useNavigate } from "react-router-dom";
 
+const PASSWORD_RULES = [
+    { key: "minLength", label: "At least 8 characters", test: (pw) => pw.length >= 8 },
+    { key: "uppercase", label: "One uppercase letter", test: (pw) => /[A-Z]/.test(pw) },
+    { key: "lowercase", label: "One lowercase letter", test: (pw) => /[a-z]/.test(pw) },
+    { key: "number", label: "One number", test: (pw) => /[0-9]/.test(pw) },
+    { key: "special", label: "One special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+];
+
 function Signup() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -19,6 +27,8 @@ function Signup() {
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (event) => {
         const name = event.target.name;
@@ -57,9 +67,12 @@ function Signup() {
         if (formData.password.length === 0) {
             newErrors.password = "Password is required";
             isValid = false;
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
-            isValid = false;
+        } else {
+            const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(formData.password));
+            if (failedRules.length > 0) {
+                newErrors.password = "Password does not meet all requirements";
+                isValid = false;
+            }
         }
 
         if (formData.confirmPassword.length === 0) {
@@ -218,6 +231,7 @@ function Signup() {
                                         type="text"
                                         name="name"
                                         placeholder="John Doe"
+                                        autoComplete="name"
                                         value={formData.name}
                                         onChange={handleChange}
                                     />
@@ -240,6 +254,7 @@ function Signup() {
                                         type="email"
                                         name="email"
                                         placeholder="name@example.com"
+                                        autoComplete="email"
                                         value={formData.email}
                                         onChange={handleChange}
                                     />
@@ -255,20 +270,46 @@ function Signup() {
                                     <label className="form-label small fw-bold text-secondary">
                                         Password
                                     </label>
-                                    <input
-                                        className={`form-control form-control-lg rounded-3 fs-6 ${
-                                            errors.password ? "is-invalid" : ""
-                                        }`}
-                                        type="password"
-                                        name="password"
-                                        placeholder="At least 6 characters"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                    />
-                                    {errors.password && (
-                                        <div className="invalid-feedback">
-                                            {errors.password}
-                                        </div>
+                                    <div className="input-group">
+                                        <input
+                                            className={`form-control form-control-lg rounded-3 rounded-end-0 fs-6 ${
+                                                errors.password ? "is-invalid" : ""
+                                            }`}
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            placeholder="Create a strong password"
+                                            autoComplete="new-password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-secondary rounded-3 rounded-start-0"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            tabIndex={-1}
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                        >
+                                            <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+                                        </button>
+                                        {errors.password && (
+                                            <div className="invalid-feedback">
+                                                {errors.password}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Password Requirements Checklist */}
+                                    {formData.password.length > 0 && (
+                                        <ul className="list-unstyled mt-2 mb-0 small">
+                                            {PASSWORD_RULES.map((rule) => {
+                                                const passed = rule.test(formData.password);
+                                                return (
+                                                    <li key={rule.key} className={passed ? "text-success" : "text-muted"}>
+                                                        <i className={`bi ${passed ? "bi-check-circle-fill" : "bi-circle"} me-1`}></i>
+                                                        {rule.label}
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
                                     )}
                                 </div>
 
@@ -277,21 +318,33 @@ function Signup() {
                                     <label className="form-label small fw-bold text-secondary">
                                         Confirm Password
                                     </label>
-                                    <input
-                                        className={`form-control form-control-lg rounded-3 fs-6 ${
-                                            errors.confirmPassword ? "is-invalid" : ""
-                                        }`}
-                                        type="password"
-                                        name="confirmPassword"
-                                        placeholder="Re-enter your password"
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                    />
-                                    {errors.confirmPassword && (
-                                        <div className="invalid-feedback">
-                                            {errors.confirmPassword}
-                                        </div>
-                                    )}
+                                    <div className="input-group">
+                                        <input
+                                            className={`form-control form-control-lg rounded-3 rounded-end-0 fs-6 ${
+                                                errors.confirmPassword ? "is-invalid" : ""
+                                            }`}
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            name="confirmPassword"
+                                            placeholder="Re-enter your password"
+                                            autoComplete="new-password"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-secondary rounded-3 rounded-start-0"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            tabIndex={-1}
+                                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                        >
+                                            <i className={`bi ${showConfirmPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+                                        </button>
+                                        {errors.confirmPassword && (
+                                            <div className="invalid-feedback">
+                                                {errors.confirmPassword}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="d-flex justify-content-center">

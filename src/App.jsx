@@ -38,12 +38,14 @@ function App() {
                 { withCredentials: true }
             );
 
-            // setUserDetails(response.data.user);
-            dispatch({
-                type: SET_USER,
-                payload: response.data.user,
-            });
+            if (response.data.user) {
+                dispatch({
+                    type: SET_USER,
+                    payload: response.data.user,
+                });
+            }
         } catch (error) {
+            // Network error or 5xx — user stays logged out
             console.log(error);
         } finally {
             setLoading(false);

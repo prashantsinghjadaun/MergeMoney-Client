@@ -1,7 +1,36 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { serverEndpoint } from "../config/appConfig";
 import { useSelector } from "react-redux";
+
+const calculateEqualSplit = (currentSplits, totalAmount) => {
+    const parsedAmount = parseFloat(totalAmount);
+    const includedCount = currentSplits.filter((s) => s.included).length;
+
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || includedCount === 0) {
+        return currentSplits.map((split) => ({
+            ...split,
+            amountOwed: 0,
+        }));
+    }
+
+    const totalCents = Math.round(parsedAmount * 100);
+    const baseCents = Math.floor(totalCents / includedCount);
+    const remainderCents = totalCents % includedCount;
+
+    let includedIndex = 0;
+    return currentSplits.map((split) => {
+        if (!split.included) {
+            return { ...split, amountOwed: 0 };
+        }
+        const shareCents = baseCents + (includedIndex < remainderCents ? 1 : 0);
+        includedIndex++;
+        return {
+            ...split,
+            amountOwed: Number((shareCents / 100).toFixed(2)),
+        };
+    });
+};
 
 function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
     const user = useSelector((state) => state.userDetails);
@@ -14,7 +43,7 @@ function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
     });
 
     const [splits, setSplits] = useState(
-        groupMembers.map((member) => ({
+        (groupMembers || []).map((member) => ({
             memberEmail: member,
             amountOwed: 0,
             included: true,
@@ -23,6 +52,33 @@ function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
 
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setSplits((prevSplits) => {
+            const currentEmails = groupMembers || [];
+            const prevEmails = prevSplits.map((s) => s.memberEmail);
+            const isSame =
+                prevEmails.length === currentEmails.length &&
+                currentEmails.every((m, i) => m === prevEmails[i]);
+
+            if (isSame) {
+                return prevSplits;
+            }
+
+            const existingMap = new Map(prevSplits.map((s) => [s.memberEmail, s]));
+            const newSplits = currentEmails.map((member) => {
+                const existing = existingMap.get(member);
+                return existing
+                    ? { ...existing }
+                    : { memberEmail: member, amountOwed: 0, included: true };
+            });
+
+            if (formData.splitType === "equal") {
+                return calculateEqualSplit(newSplits, formData.amount);
+            }
+            return newSplits;
+        });
+    }, [groupMembers, formData.splitType, formData.amount]);
 
     const validate = () => {
         let isValid = true;
@@ -56,31 +112,31 @@ function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
 
     const onChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        const nextFormData = { ...formData, [name]: value };
+        setFormData(nextFormData);
 
         if (errors[name]) {
             setErrors({ ...errors, [name]: null });
         }
 
-        // If amount changes and splitType is equal, recalculate splits
-        if (name === "amount" && formData.splitType === "equal") {
-            const includedCount = splits.filter((s) => s.included).length;
-            if (includedCount > 0 && value) {
-                const amountPerPerson = parseFloat(value) / includedCount;
-                setSplits(
-                    splits.map((split) => ({
-                        ...split,
-                        amountOwed: split.included ? amountPerPerson : 0,
-                    }))
-                );
-            }
+        // If amount changes or splitType switches to equal, recalculate splits
+        if (name === "amount" && nextFormData.splitType === "equal") {
+            setSplits((prevSplits) => calculateEqualSplit(prevSplits, value));
+        } else if (name === "splitType" && value === "equal") {
+            setSplits((prevSplits) => calculateEqualSplit(prevSplits, nextFormData.amount));
         }
     };
 
     const handleSplitChange = (index, field, value) => {
-        const newSplits = [...splits];
-        newSplits[index] = { ...newSplits[index], [field]: value };
-        setSplits(newSplits);
+        setSplits((prevSplits) => {
+            const newSplits = [...prevSplits];
+            newSplits[index] = { ...newSplits[index], [field]: value };
+
+            if (field === "included" && formData.splitType === "equal") {
+                return calculateEqualSplit(newSplits, formData.amount);
+            }
+            return newSplits;
+        });
 
         if (errors.splits) {
             setErrors({ ...errors, splits: null });
@@ -88,16 +144,7 @@ function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
     };
 
     const handleEqualSplit = () => {
-        const includedCount = splits.filter((s) => s.included).length;
-        if (includedCount > 0) {
-            const amountPerPerson = parseFloat(formData.amount) / includedCount;
-            setSplits(
-                splits.map((split) => ({
-                    ...split,
-                    amountOwed: split.included ? amountPerPerson : 0,
-                }))
-            );
-        }
+        setSplits((prevSplits) => calculateEqualSplit(prevSplits, formData.amount));
     };
 
     const handleSubmit = async (e) => {
@@ -133,7 +180,7 @@ function AddExpenseModal({ show, onHide, groupId, groupMembers, onSuccess }) {
                     splitType: "equal",
                 });
                 setSplits(
-                    groupMembers.map((member) => ({
+                    (groupMembers || []).map((member) => ({
                         memberEmail: member,
                         amountOwed: 0,
                         included: true,

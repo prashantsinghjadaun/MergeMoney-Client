@@ -4,6 +4,7 @@ import axios from "axios";
 import { serverEndpoint } from "../config/appConfig";
 import AddExpenseModal from "../components/addExpenseModal";
 import ExpenseCard from "../components/ExpenseCard";
+import SettlementSummary from "../components/settlementSummary";
 
 function GroupExpenses() {
     const { groupId } = useParams();
@@ -87,6 +88,10 @@ function GroupExpenses() {
         setExpenses(expenses.filter(expense => expense._id !== expenseId));
     };
 
+    const handleGroupSettle = (updatedGroup) => {
+        setGroup(updatedGroup);
+    };
+
     if (loading) {
         return (
             <div className="container p-5 text-center">
@@ -139,6 +144,14 @@ function GroupExpenses() {
                         + Add Expense
                     </button>
                 </div>
+            )}
+
+            {group && (
+                <SettlementSummary
+                    groupId={groupId}
+                    group={group}
+                    onGroupSettle={handleGroupSettle}
+                />
             )}
 
             <div className="bg-white p-5 rounded-4 shadow-sm border">

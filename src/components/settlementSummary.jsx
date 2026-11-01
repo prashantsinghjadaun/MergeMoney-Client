@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { Modal, Button, Form } from "react-bootstrap";
 import QRCode from "qrcode";
 
-function SettlementSummary({ groupId, group, onGroupSettle }) {
+function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
     const user = useSelector((state) => state.userDetails);
     const [settlement, setSettlement] = useState(null);
     const [payments, setPayments] = useState([]);
@@ -89,7 +89,7 @@ function SettlementSummary({ groupId, group, onGroupSettle }) {
             fetchSettlement();
             fetchPayments();
         }
-    }, [groupId, fetchSettlement, fetchPayments]);
+    }, [groupId, refreshTrigger, fetchSettlement, fetchPayments]);
 
     // Admin settles entire group
     const handleSettleGroup = async () => {

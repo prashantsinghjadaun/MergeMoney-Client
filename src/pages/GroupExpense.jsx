@@ -13,6 +13,7 @@ function GroupExpenses() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showAddExpense, setShowAddExpense] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Fetch group details
     const fetchGroupDetails = async () => {
@@ -80,12 +81,14 @@ function GroupExpenses() {
     }, [groupId]);
 
     const handleExpenseAdded = (newExpense) => {
-        setExpenses([newExpense, ...expenses]);
+        setExpenses((prevExpenses) => [newExpense, ...prevExpenses]);
         setShowAddExpense(false);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     const handleExpenseDeleted = (expenseId) => {
-        setExpenses(expenses.filter(expense => expense._id !== expenseId));
+        setExpenses((prevExpenses) => prevExpenses.filter(expense => expense._id !== expenseId));
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     const handleGroupSettle = (updatedGroup) => {
@@ -151,6 +154,7 @@ function GroupExpenses() {
                     groupId={groupId}
                     group={group}
                     onGroupSettle={handleGroupSettle}
+                    refreshTrigger={refreshTrigger}
                 />
             )}
 

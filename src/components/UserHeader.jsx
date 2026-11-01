@@ -1,15 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 function UserHeader() {
     const user = useSelector((state) => state.userDetails);
-    const location = useLocation();
-
-    // Helper to set active class
-    const isActive = (path) =>
-        location.pathname === path
-            ? "active fw-bold text-primary"
-            : "text-secondary";
+    const isPro = user?.subscription?.status === "active";
 
     return (
         <nav className="navbar navbar-expand-lg bg-white sticky-top border-bottom shadow-sm py-2">
@@ -34,17 +28,11 @@ function UserHeader() {
                 <div className="collapse navbar-collapse" id="userNavbar">
                     {/* Primary App Navigation */}
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        {/* <li className="nav-item">
-                            <Link
-                                className={`nav-link px-3 ${isActive(
-                                    "/dashboard"
-                                )}`}
-                                to="/dashboard"
-                            >
-                                <i className="bi bi-speedometer2 me-1"></i>{" "}
-                                Groups
+                        <li className="nav-item">
+                            <Link className="nav-link px-3 text-secondary fw-medium" to="/dashboard">
+                                <i className="bi bi-collection me-1"></i> Groups
                             </Link>
-                        </li> */}
+                        </li>
                     </ul>
 
                     {/* User Profile Dropdown */}
@@ -72,15 +60,25 @@ function UserHeader() {
                                 <span className="text-dark fw-medium small">
                                     {user ? user.name : "Account"}
                                 </span>
+                                {isPro && (
+                                    <span className="badge bg-warning text-dark ms-2 py-1 px-2 small">
+                                        <i className="bi bi-star-fill me-1"></i>PRO
+                                    </span>
+                                )}
                             </Link>
                             <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 rounded-3">
                                 <li
                                     className="px-3 py-2 border-bottom mb-1"
                                     style={{ minWidth: "200px" }}
                                 >
-                                    <p className="mb-0 small fw-bold text-dark">
-                                        Signed in as
-                                    </p>
+                                    <div className="d-flex align-items-center justify-content-between">
+                                        <p className="mb-0 small fw-bold text-dark">
+                                            Signed in as
+                                        </p>
+                                        {isPro && (
+                                            <span className="badge bg-warning text-dark small">PRO</span>
+                                        )}
+                                    </div>
                                     <p className="mb-0 small text-muted">
                                         {user?.email}
                                     </p>
@@ -90,7 +88,7 @@ function UserHeader() {
                                         className="dropdown-item py-2 fw-medium"
                                         to="/manage-users"
                                     >
-                                        <i className="bi bi-person-check me-2"></i>{" "}
+                                        <i className="bi bi-people me-2"></i>{" "}
                                         Manage Users
                                     </Link>
                                 </li>
@@ -99,7 +97,7 @@ function UserHeader() {
                                         className="dropdown-item py-2 fw-medium"
                                         to="/manage-payments"
                                     >
-                                        <i className="bi bi-person-check me-2"></i>{" "}
+                                        <i className="bi bi-coin me-2"></i>{" "}
                                         Manage Credits
                                     </Link>
                                 </li>
@@ -108,8 +106,8 @@ function UserHeader() {
                                         className="dropdown-item py-2 fw-medium"
                                         to="/manage-subscription"
                                     >
-                                        <i className="bi bi-person-check me-2"></i>{" "}
-                                        Manage Subscriptions
+                                        <i className="bi bi-credit-card-2-front me-2"></i>{" "}
+                                        Manage Subscription
                                     </Link>
                                 </li>
                                 <hr className="m-0" />

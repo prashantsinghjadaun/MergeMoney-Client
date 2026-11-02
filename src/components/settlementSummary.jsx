@@ -10,7 +10,6 @@ function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
     const [settlement, setSettlement] = useState(null);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [settling, setSettling] = useState(false);
     const [actionLoading, setActionLoading] = useState(null); // 'payment-create', 'utr-submit', or paymentId
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
@@ -90,32 +89,6 @@ function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
             fetchPayments();
         }
     }, [groupId, refreshTrigger, fetchSettlement, fetchPayments]);
-
-    // Admin settles entire group
-    const handleSettleGroup = async () => {
-        if (
-            window.confirm(
-                "Are you sure you want to settle this group? This will mark all debts as paid."
-            )
-        ) {
-            setSettling(true);
-            try {
-                const response = await axios.post(
-                    `${serverEndpoint}/expenses/settle/${groupId}`,
-                    {},
-                    { withCredentials: true }
-                );
-                onGroupSettle(response.data.group);
-                setSettlement({ balances: [], settlements: [] });
-                setSuccessMsg("Group marked as settled successfully.");
-            } catch (err) {
-                console.error("Error settling group:", err);
-                setError("Error settling group: " + (err.response?.data?.message || err.message));
-            } finally {
-                setSettling(false);
-            }
-        }
-    };
 
     // 1. Initiate UPI payment for a suggested settlement
     const handleInitiatePayment = async (txn) => {
@@ -261,25 +234,6 @@ function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
             });
         }
     };
-
-    const isGroupAdmin = user?.email === group?.adminEmail;
-    const isGroupSettled = group?.paymentStatus?.isPaid;
-
-    if (isGroupSettled) {
-        return (
-            <div className="alert alert-success border-2 border-success d-flex align-items-center gap-3 mb-4">
-                <i className="bi bi-check-circle-fill fs-5"></i>
-                <div>
-                    <h6 className="mb-1">Group Already Settled</h6>
-                    <p className="text-muted small mb-0">
-                        This group was settled on{" "}
-                        {new Date(group.paymentStatus.date).toLocaleDateString("en-IN")}. All
-                        members now owe zero amount.
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     const balances = settlement?.balances || [];
     const settlements = settlement?.settlements || [];
@@ -631,37 +585,6 @@ function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                )}
-
-                {/* Admin Settle Group (Fallback All-in-one) */}
-                {isGroupAdmin && hasData && (
-                    <div className="mt-4 pt-3 border-top">
-                        <button
-                            type="button"
-                            className="btn btn-outline-success w-100"
-                            onClick={handleSettleGroup}
-                            disabled={settling}
-                        >
-                            {settling ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Settling...
-                                </>
-                            ) : (
-                                <>
-                                    <i className="bi bi-check-circle me-2"></i>
-                                    Settle All Group Balances (Admin)
-                                </>
-                            )}
-                        </button>
-                        <small className="text-muted d-block mt-2">
-                            Admin tool: Directly marks all balances as settled.
-                        </small>
                     </div>
                 )}
             </div>

@@ -6,7 +6,7 @@ import AppLayout from "./components/AppLayout";
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Logout from "./pages/Logout";
-import UserLayout from "./components/userLayout";
+import UserLayout from "./components/UserLayout";
 import axios from "axios";
 import { serverEndpoint } from "./config/appConfig";
 import { useSelector, useDispatch } from "react-redux";

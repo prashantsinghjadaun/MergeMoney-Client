@@ -1,5 +1,5 @@
-import UserFooter from "./userFooter";
-import UserHeader from "./userHeader";
+import UserFooter from "./UserFooter";
+import UserHeader from "./UserHeader";
 
 function UserLayout({ user, children }) {
   return (

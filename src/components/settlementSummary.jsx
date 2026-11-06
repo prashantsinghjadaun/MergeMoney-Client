@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { Modal, Button, Form } from "react-bootstrap";
 import QRCode from "qrcode";
 
-function SettlementSummary({ groupId, group, onGroupSettle, refreshTrigger }) {
+function SettlementSummary({ groupId, refreshTrigger }) {
     const user = useSelector((state) => state.userDetails);
     const [settlement, setSettlement] = useState(null);
     const [payments, setPayments] = useState([]);

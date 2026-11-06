@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import { serverEndpoint } from "../config/appConfig";
 import { useDispatch } from "react-redux";
 import { SET_USER } from "../redux/user/action";
@@ -99,7 +99,7 @@ function Signup() {
                     email: formData.email,
                     password: formData.password,
                 };
-                const response = await axios.post(
+                await axios.post(
                     `${serverEndpoint}/auth/register`,
                     body,
                     { withCredentials: true }
@@ -378,20 +378,14 @@ function Signup() {
 
                             {/* Google Social Signup */}
                             <div className="d-flex justify-content-center w-100">
-                                <GoogleOAuthProvider
-                                    clientId={
-                                        import.meta.env.VITE_GOOGLE_CLIENT_ID
-                                    }
-                                >
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleFailure}
-                                        theme="outline"
-                                        shape="pill"
-                                        text="signup_with"
-                                        width="500"
-                                    />
-                                </GoogleOAuthProvider>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleFailure}
+                                    theme="outline"
+                                    shape="pill"
+                                    text="signup_with"
+                                    width="350"
+                                />
                             </div>
                         </div>
                     </div>

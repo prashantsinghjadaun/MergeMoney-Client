@@ -33,7 +33,7 @@ function Groups() {
         }
     };
 
-    const handleGroupUpdateSuccess = (data) => {
+    const handleGroupUpdateSuccess = () => {
         // Default to 1st page whenever there is an update to the group,
         // or new group is added. This logic can be customized as per the
         // user experience you want to provide. You can choose to keep the user

@@ -16,7 +16,7 @@ const Student4 = () => {
 
     return (
     <div>
-<button onClick={() => alert('Button Clicked!')}>Hide Students</button>
+<button onClick={handleClick}>Toggle Students</button>
 {visible && (
     <>
     {studentsList.map((s) => (

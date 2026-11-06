@@ -13,7 +13,6 @@ function ForgotPassword() {
     const [errors, setErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [resetCodeFromServer, setResetCodeFromServer] = useState("");
 
     const handleEmailSubmit = async (event) => {
         event.preventDefault();
@@ -27,14 +26,13 @@ function ForgotPassword() {
 
         setIsLoading(true);
         try {
-            const response = await axios.post(
+            await axios.post(
                 `${serverEndpoint}/auth/forgot-password`,
                 { email },
                 { withCredentials: true }
             );
 
-            setResetCodeFromServer(response.data.resetCode);
-            setSuccessMessage("Reset code sent! Check the console for the code (demo).");
+            setSuccessMessage("Reset code sent! Please check your registered email.");
             setStep(2);
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Error sending reset code";
@@ -80,7 +78,7 @@ function ForgotPassword() {
         if (validateResetForm()) {
             setIsLoading(true);
             try {
-                const response = await axios.post(
+                await axios.post(
                     `${serverEndpoint}/auth/reset-password`,
                     {
                         email,

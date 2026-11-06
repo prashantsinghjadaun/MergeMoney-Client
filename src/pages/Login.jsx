@@ -1,10 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import { serverEndpoint } from "../config/appConfig";
 import { useDispatch } from "react-redux";
 import { SET_USER } from "../redux/user/action";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const RECENT_EMAILS_KEY = "recent_login_emails";
 
@@ -36,6 +36,7 @@ const saveRecentEmail = (email) => {
 
 function Login() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -137,10 +138,11 @@ function Login() {
                 type: SET_USER,
                 payload: response.data.user,
             });
+            navigate("/dashboard");
         } catch (error) {
-            console.log(error);
+            console.error('Google SSO Error:', error);
             setErrors({
-                message: "Unable to process google sso, please try again",
+                message: error.response?.data?.message || "Unable to process google sso, please try again",
             });
         }
     };
@@ -283,20 +285,14 @@ function Login() {
 
                             {/* Google Social Login */}
                             <div className="d-flex justify-content-center w-100">
-                                <GoogleOAuthProvider
-                                    clientId={
-                                        import.meta.env.VITE_GOOGLE_CLIENT_ID
-                                    }
-                                >
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleFailure}
-                                        theme="outline"
-                                        shape="pill"
-                                        text="signin_with"
-                                        width="500"
-                                    />
-                                </GoogleOAuthProvider>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleFailure}
+                                    theme="outline"
+                                    shape="pill"
+                                    text="signin_with"
+                                    width="350"
+                                />
                             </div>
 
                         </div>
